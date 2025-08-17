@@ -1,0 +1,37 @@
+data:
+  low_dose_folder: '/data/coding/Preprocessed_512x512/512/Quarter Dose/1mm/Sharp Kernel (D45)'
+  high_dose_folder: '/data/coding/Preprocessed_512x512/512/Full Dose/1mm/Sharp Kernel (D45)'
+  csv: '/data/coding/1mmSHARP.csv'
+model:
+  # 核心结构参数（模型必须依赖的参数）
+  n_colors: 1                  # 输入图像通道数（1=灰白医学图像，必填）
+  n_feats: 16                  # 基础特征图数量（控制模型容量，建议32-128）
+  growth_rate: 16              # RDB模块特征增长率（建议与n_feats保持一致）
+  RDB_num_layers: 2            # 每个RDB中的卷积层数（建议2-4，层数越多特征提取能力越强）
+  
+  # 卷积核配置（模型中默认使用，但可扩展配置）
+  kernel_size: 5               # 卷积核大小（与模型中conv1/conv2保持一致）
+  
+  # 动态卷积相关（模型中使用dynamic_conv，可补充配置）
+  dynamic_conv_groups: 2       # 动态卷积分组数（建议2-8，平衡性能与计算量）
+  dynamic_conv_kernel: 2       # 动态卷积核大小（默认与基础卷积一致）
+  
+  # 小波变换模块（WRB）配置（模型中使用WRB，补充其依赖参数）
+  wrb_level: 2                 # 小波分解层数（建议1-3，影响多尺度特征提取）
+  wrb_mode: 'haar'             # 小波基函数（如'haar'、'db4'，医学图像常用haar）
+  debug: False
+
+ 
+training:
+  seed: 42
+  batch_size: 64
+  lr: 0.0001  # 学习率是训练参数，放在这里更合适
+  
+  # 学习率调度器是训练过程的一部分，将其嵌套在training模块下
+  lr_scheduler:
+    name: ReduceLROnPlateau  # 建议明确写出调度器名称
+    params:
+      mode: 'min'
+      factor: 0.1
+      patience: 10
+      min_lr: 0.000001 # 1e-6
