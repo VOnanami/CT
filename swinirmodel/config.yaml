@@ -1,0 +1,40 @@
+model:
+  # --- 任务定义 (Task Definition) ---
+  upscale: 2                          # 任务：2倍超分辨率
+  in_chans: 1                         # 输入通道：1代表灰度图
+  img_size: [256, 256]                # 输入图像的尺寸 (H, W)
+
+  # --- 模型架构 (Lightweight/Shallow Version) ---
+  window_size: 8                      # Swin Transformer的窗口大小
+  embed_dim: 60                       # 特征维度。设为较小的值以降低模型大小
+  depths: [4, 4, 4, 4]                # 每个Swin-T阶段的块数量。4个阶段，每个阶段4个块，模型较浅
+  num_heads: [6, 6, 6, 6]             # 注意力头数量，需能被embed_dim整除
+  mlp_ratio: 2.0                      # MLP层的隐藏维度比例
+
+  # --- 重建模块 (Reconstruction Module) ---
+  upsampler: "pixelshuffle"          # 上采样模块，'pixelshuffle'是经典高效的选择
+  img_range: 1.0  
+data_paths:
+  train:
+    lq: /data/coding/datasets_final_numpy_pkl/train_LQ.pklv4
+    gt: /data/coding/datasets_final_numpy_pkl/train_GT.pklv4
+
+  val:
+    lq: /data/coding/datasets_final_numpy_pkl/val_LQ.pklv4
+    gt: /data/coding/datasets_final_numpy_pkl/val_GT.pklv4
+
+  test:
+    lq: /data/coding/datasets_final_numpy_pkl/test_LQ.pklv4
+    gt: /data/coding/datasets_final_numpy_pkl/test_GT.pklv4
+training:
+  seed: 42
+  lr: 0.0001  # 学习率是训练参数，放在这里更合适
+  
+  # 学习率调度器是训练过程的一部分，将其嵌套在training模块下
+  lr_scheduler:
+    name: ReduceLROnPlateau  # 建议明确写出调度器名称
+    params:
+      mode: 'min'
+      factor: 0.1
+      patience: 10
+      min_lr: 0.000001 # 1e-6
