@@ -1,1 +1,41 @@
+#############################################
+############## WiTUnet 配置文件 ###############
+#############################################
+model:
+  # 模型结构参数
+  config:
+    img_size: 512                  # 输入图像尺寸（长宽一致）
+    in_chans: 1                    # 输出图像通道数（如CT图像为1）
+    dd_in: 1                       # 输入图像通道数
+    embed_dim: 16                  # 基础特征维度
+    depths:                        # 各层WiTUBlock中WindowTransformerBlock的数量
+      - 2
+      - 2
+      - 2
+      - 2
+      - 2
+    win_size: 4                    # 窗口注意力的窗口大小
+    mlp_ratio: 2.0                 # MLP隐藏层维度倍数
+    token_projection: linear       # 令牌投影方式（linear/conv）
+    token_mlp: LiPe                # MLP类型（LiPe/mlp）
+    modulator: True                # 是否使用调制器
+    shift_flag: False              # 是否启用窗口移位
+    deep_super: True               # 是否使用深度监督
+data:
+  low_dose_folder: '/data/coding/Preprocessed_512x512/512/Quarter Dose/1mm/Sharp Kernel (D45)'
+  high_dose_folder: '/data/coding/Preprocessed_512x512/512/Full Dose/1mm/Sharp Kernel (D45)'
+  csv: '/data/coding/1mmSHARP.csv'
+training:
+  seed: 42
+  batch_size: 64
+  lr: 0.0001  # 学习率是训练参数，放在这里更合适
+  
+  # 学习率调度器是训练过程的一部分，将其嵌套在training模块下
+  lr_scheduler:
+    name: ReduceLROnPlateau  # 建议明确写出调度器名称
+    params:
+      mode: 'min'
+      factor: 0.1
+      patience: 10
+      min_lr: 0.000001 # 1e-6
 
