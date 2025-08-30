@@ -1,0 +1,30 @@
+data:
+  train_tsv: 'datasets/andrewmvd/ct-low-dose-reconstruction/versions/2/Preprocessed_512x512/512/output/train.tsv'
+  val_tsv: 'datasets/andrewmvd/ct-low-dose-reconstruction/versions/2/Preprocessed_512x512/512/output/validation.tsv'
+model:
+  spatial_dims: 2
+  img_size: [256, 256]
+  in_channels: 1
+  out_channels: 1
+  depths: [2,4,4,2]
+  num_heads : [4,8,16,32]
+  feature_size: 48
+  norm_name : "batch"
+  drop_rate: 0.01
+  attn_drop_rate : 0.01
+  dropout_path_rate: 0.01
+  downsample: "mergingv2"
+  use_v2: true
+training:
+  seed: 42
+  lr: 0.0001
+
+
+  lr_scheduler:
+    name: ReduceLROnPlateau
+    params:
+      mode: 'min'
+      factor: 0.1
+      patience: 10
+      verbose: True
+      min_lr: 0.000001 # 1e-6
