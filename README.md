@@ -1,5 +1,5 @@
 # Denosing-frequency-framework
-The coding base is monai  
+The coding base is monai and it can run in windows10,11 and linux,python 10,11 also can run it 
 
 the datasets is mayo2016,you can find in kaggle  
 
