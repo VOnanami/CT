@@ -1,7 +1,5 @@
-# CT
-we use gemini2.5pro to write this code 
-
-coding base is monai  
+# Denosing-frequency-framework
+The coding base is monai  
 
 the datasets is mayo2016,you can find in kaggle  
 
@@ -18,3 +16,5 @@ MWDCN:https://github.com/hellloxiaotian/MWDCNN/
 WitUnet:https://github.com/woldier/WiTUnet
 
 Monai:https://github.com/Project-MONAI/MONAI
+
+We submit our paper to Medical Physice
