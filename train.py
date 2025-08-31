@@ -23,7 +23,6 @@ def save_test_outputs(
     output_dir: Path,
 ):
     """
-    对测试集进行前向传播，并将模型的输出结果直接保存为 .npy 文件。
 
     Args:
         model (nn.Module): 训练好的模型。
@@ -47,18 +46,14 @@ def save_test_outputs(
         reconstructed_images_np = reconstructed_images.cpu().numpy()
 
         for i in range(reconstructed_images_np.shape[0]):
-            # 获取单张图像的Numpy数组和对应的文件名
-            # 数组形状通常是 (C, H, W)，例如 (1, 256, 256)
+          
             img_np = reconstructed_images_np[i] 
             filename = original_filenames[i]
             
-            # --- 主要改动在这里 ---
-            # 1. 无需进行任何后处理，直接保存原始的浮点数数组
-            
-            # 2. 构建新的保存路径，扩展名为 .npy
+           
             save_path = output_dir / f"{Path(filename).stem}_reconstructed.npy"
             
-            # 3. 使用 np.save 保存数组
+           
             np.save(save_path, img_np)
 def train_epoch_swin(
     model: nn.Module,
@@ -124,30 +119,29 @@ def eval_or_test(
             
             # 2. 安全检查：如果 data_range 几乎为0 (图像是平坦的)，则该批次的PSNR/SSIM无意义
             if data_range < 1e-6:
-                # 对于这个特殊的批次，我们跳过PSNR/SSIM计算，或者给一个合理的值
-                # 这里我们简单地认为这个批次的PSNR/SSIM贡献为0
+               
                 psnr = torch.tensor(0.0, device=device)
                 ssim = torch.tensor(0.0, device=device)
             else:
-                # 只有在data_range有效时才进行计算
+             
                 psnr_metric = PSNRMetric(max_val=data_range.item())
                 ssim_metric = SSIMMetric(data_range=data_range, spatial_dims=2)
                 psnr = psnr_metric(reconstruction, target_images)
                 ssim = ssim_metric(reconstruction, target_images)
             
-            # MAE 和 MSE 的计算不受影响
+        
             mae = F.l1_loss(reconstruction, target_images)
             mse = F.mse_loss(reconstruction, target_images)
             # --- 结束修改 ---
             
-        # 累加每个批次的结果
+      
         batch_size = noisy_images.shape[0]
         total_mae += mae.item() * batch_size
         total_mse += mse.item() * batch_size
         total_psnr += psnr.mean().item() * batch_size
         total_ssim += ssim.mean().item() * batch_size
 
-    # 计算最终的平均值
+  
     n_samples = len(loader.dataset)
     avg_mae = total_mae / n_samples
     avg_mse = total_mse / n_samples
@@ -182,9 +176,6 @@ def train_swin(
     scaler = GradScaler(enabled=(device.type == 'cuda'))
     raw_model = model.module if hasattr(model, "module") else model
 
-    # ==============================================================================
-    # --- 新增：在训练开始前，对验证集进行一次性的健康扫描 ---
-    # ==============================================================================
     print("\n--- [启动检查] 正在扫描验证集中的潜在问题数据 ---")
     
     # 从 DataLoader 中获取其底层的 Dataset 对象
@@ -219,14 +210,11 @@ def train_swin(
         for info in problematic_files_info:
             print(info)
         print("="*80)
-        # 抛出异常，中断整个程序
+      
         raise ValueError("验证集中发现损坏或无法处理的数据，请清理后重试。")
     else:
         print("✅ [启动成功] 数据集健康检查通过，未发现问题。开始正式训练...")
-    # --- 扫描逻辑结束 ---
 
-
-    # --- 原有的训练循环保持不变 ---
     for epoch in range(start_epoch, n_epochs):
         train_epoch_swin(
             model=model, loader=train_loader, optimizer=optimizer,
@@ -240,7 +228,7 @@ def train_swin(
             )
             val_mae = val_metrics["mae"]
             
-            # 如果验证过程中仍然出现NaN，说明问题可能来自模型内部（如BatchNorm）
+           
             if torch.isnan(torch.tensor(val_mae)):
                 print(f"Epoch {epoch + 1} | 验证时出现NaN！这可能是一个模型内部问题（如BatchNorm）。训练停止。")
                 # 可以在这里提前结束训练
@@ -251,7 +239,7 @@ def train_swin(
                 f"Val PSNR: {val_metrics['psnr']:.2f} dB | Val SSIM: {val_metrics['ssim']:.4f}"
             )
             
-            # ... (后续的保存模型、学习率调度等逻辑完全保持不变) ...
+          
             if val_mae < best_mae_loss:
                 print(f"✅ New best val MAE: {val_mae:.4f}. Saving model...")
                 best_mae_loss = val_mae
@@ -293,7 +281,7 @@ def train_swin(
     print("------------------------\n")
     output_save_dir = run_dir / "test_outputs"
     
-    # 调用函数，传入最好的模型、测试集加载器、设备和输出路径
+  
     save_test_outputs(
         model=model, # 使用已加载了最佳权重的模型
         loader=test_loader,
